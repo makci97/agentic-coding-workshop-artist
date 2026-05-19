@@ -1,0 +1,13 @@
+{
+  "name": "mandala",
+  "pattern_type": "mandala",
+  "center": [400, 300],
+  "max_radius": 250,
+  "colors": ["#FF5733", "#33FF57", "#3357FF", "#FF33F5"],
+  "stroke_width": 2,
+  "rotation_angle": 0,
+  "params": {
+    "num_spokes": 36,
+    "layers": 5
+  }
+}
