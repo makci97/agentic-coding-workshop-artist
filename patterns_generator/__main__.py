@@ -7,6 +7,11 @@ Usage:
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# Load .env file from project root
+load_dotenv()
+
 from patterns_generator.client import CanvasClient, create_client_from_env
 from patterns_generator.config import load_pattern
 from patterns_generator.generators import (

@@ -1,5 +1,6 @@
 """WebSocket client for sending strokes to the canvas server."""
 
+import json
 import os
 from dataclasses import dataclass
 
@@ -93,7 +94,7 @@ class CanvasClient:
         ]
 
         message = {"artist_name": self.artist_name, "segments": segments}
-        self.ws.send_json(message)
+        self.ws.send(json.dumps(message))
 
     def close(self) -> None:
         """Close WebSocket connection."""

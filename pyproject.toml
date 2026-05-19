@@ -10,6 +10,7 @@ dependencies = [
   "pre-commit>=4.0",
   "websocket-client>=1.8",
   "requests>=2.32",
+  "python-dotenv>=1.2.2",
 ]
 
 [dependency-groups]
@@ -23,6 +24,9 @@ dev = [
 [tool.ruff]
 target-version = "py314"
 src = ["brushes", "palette", "painting"]
+
+[[tool.uv.index]]
+url = "https://artifactory.raiffeisen.ru/artifactory/api/pypi/remote-pypi/simple"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
