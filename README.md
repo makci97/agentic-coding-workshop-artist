@@ -19,4 +19,17 @@ just fix              # auto-fix
 just test             # прогнать интеграционный тест против сервера
 ```
 
+## Canvas Viewer
+
+HTML-вьюер для отображения общего канваса. Поддерживает конфигурацию через query-параметры:
+
+- `ws=<url>` — WebSocket URL (обязательно `ws://` или `wss://`)
+- `http=<url>` — HTTP base URL для `/canvas/config`
+- `canvas=main|test` — выбор канваса (`main` по умолчанию, `test` для `/ws-test`)
+
+Примеры:
+- `canvas/view?canvas=main` — основной канвас
+- `canvas/view?canvas=test` — тестовый канвас
+- `canvas/view?ws=ws://localhost:3000/canvas/ws` — кастомный WebSocket
+
 Архитектура и контракт сервера — в [CLAUDE.md](CLAUDE.md).
