@@ -6,4 +6,4 @@ set -euo pipefail
 exec claude \
   --permission-mode bypassPermissions \
   --model large \
-  "/ralph-loop:ralph-loop \"Возьми следующую невыполненную issue из materials/issues/. Создай отдельный branch, реализуй задачу: строго проходи по критериям, отметь \\\`[x]\\\` прямо в файле. После выполненной задачи сделай пуллреквест в main branch и переключись обратно в main. Закрыл — переходи к следующей. Когда все issue в папке закрыты — выведи <promise>DONE</promise>. Не ври, не комить.\" --completion-promise 'DONE' --max-iterations 50"
+  "/ralph-loop:ralph-loop \"Возьми следующую невыполненную issue из materials/issues/. Создай отдельный branch, реализуй задачу: строго проходи по критериям, отметь \\\`[x]\\\` прямо в файле. После выполненной задачи сделай пуллреквест в main branch, проверь отсутсвие конфликтов и переключись обратно в main, обнови его. Закрыл — переходи к следующей. Когда все issue в папке закрыты — выведи <promise>DONE</promise>. Не ври, не комить.\" --completion-promise 'DONE' --max-iterations 50"

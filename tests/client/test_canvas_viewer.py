@@ -239,3 +239,90 @@ def test_layer_manager_clear_resets_layers():
     # Проверка сброса allArtists и visibleLayers при clear
     assert "allArtists.clear" in content or "allArtists = new Set" in content, "allArtists not cleared on clear"
     assert "visibleLayers.clear" in content or "visibleLayers = new Set" in content, "visibleLayers not cleared on clear"
+
+
+# =============================================================================
+# Error Handling & Reconnect Tests
+# =============================================================================
+
+def test_connection_indicator_exists():
+    """Индикатор подключения существует."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "connection-indicator" in content, "No connection-indicator"
+    assert "connectionStatus" in content, "No connectionStatus element"
+
+
+def test_connection_status_states():
+    """Статусы подключения: connected, disconnected, reconnecting."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "connected" in content, "No connected state"
+    assert "disconnected" in content, "No disconnected state"
+    assert "reconnecting" in content, "No reconnecting state"
+
+
+def test_connection_indicator_styling():
+    """Индикатор подключения имеет стили."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert ".connection-indicator" in content, "No connection-indicator CSS"
+    assert "position: absolute" in content or "position:absolute" in content, "No absolute positioning"
+
+
+def test_error_display_exists():
+    """Отображение ошибок существует."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "error-display" in content, "No error-display"
+    assert "errorMessage" in content, "No errorMessage element"
+
+
+def test_exponential_backoff():
+    """Exponential backoff для переподключения."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    # Проверка exponential backoff
+    assert "Math.pow" in content or "**" in content, "No exponential calculation"
+    assert "MAX_RECONNECT_DELAY" in content, "No max delay constant"
+    assert "reconnectAttempts" in content, "No reconnectAttempts counter"
+
+
+def test_jitter_in_reconnect():
+    """Jitter добавляется к задержке переподключения."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "Math.random" in content, "No jitter in reconnect delay"
+
+
+def test_update_connection_status_function():
+    """Функция updateConnectionStatus существует."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "updateConnectionStatus" in content, "No updateConnectionStatus function"
+
+
+def test_show_hide_error_functions():
+    """Функции showError/hideError существуют."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "showError" in content, "No showError function"
+    assert "hideError" in content, "No hideError function"
+
+
+def test_error_message_displayed():
+    """Текст ошибки отображается пользователю."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    # Проверка отображения ошибки
+    assert "errorMessage.textContent" in content or 'errorMessage.textContent =' in content, "No error message display"
+    assert "errorDisplay.classList.add" in content or 'errorDisplay.classList.add(' in content, "No error display show"
