@@ -1,0 +1,1 @@
+"""Patterns generator package."""

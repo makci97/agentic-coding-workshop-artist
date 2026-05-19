@@ -8,6 +8,8 @@ dependencies = [
   "pyright==1.1.409",
   "tach==0.35.0",
   "pre-commit>=4.0",
+  "websocket-client>=1.8",
+  "requests>=2.32",
 ]
 
 [dependency-groups]
