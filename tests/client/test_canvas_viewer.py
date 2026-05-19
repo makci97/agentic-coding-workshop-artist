@@ -134,3 +134,108 @@ def test_server_error_message():
 
     # Проверка обработки error сообщений от сервера
     assert "'error'" in content or '"error"' in content, "No error message type handling"
+
+
+# =============================================================================
+# Layer Manager Tests
+# =============================================================================
+
+def test_layer_manager_dropdown_exists():
+    """Выпадающее меню Layer Manager существует."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "layer-manager" in content, "No layer-manager container"
+    assert "layer-dropdown" in content, "No layer-dropdown element"
+    assert "layer-button" in content, "No layer-button"
+    assert "layer-content" in content, "No layer-content"
+
+
+def test_layer_manager_positioning():
+    """Layer Manager позиционирован справа сверху."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "position: absolute" in content or "position:absolute" in content, "No absolute positioning"
+    assert "top: 10px" in content or "top:10px" in content, "No top positioning"
+    assert "right: 10px" in content or "right:10px" in content, "No right positioning"
+    assert "z-index: 1000" in content or "z-index:1000" in content, "No z-index for layer manager"
+
+
+def test_layer_manager_checkbox():
+    """Layer Manager использует чекбоксы для управления видимостью."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert 'type="checkbox"' in content or "type='checkbox'" in content, "No checkbox inputs"
+    assert "visibleLayers" in content, "No visibleLayers state"
+    assert "Set" in content, "No Set usage for layers"
+
+
+def test_layer_manager_artist_extraction():
+    """Извлечение artist_name из штрихов."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "artist_name" in content, "No artist_name handling"
+    assert "allArtists" in content, "No allArtists collection"
+
+
+def test_layer_manager_render_filtering():
+    """Рендеринг фильтрует штрихи по видимым слоям."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    # Проверка фильтрации при рендеринге
+    assert "visibleLayers.has" in content or "visibleLayers.has(" in content, "No layer visibility check in render"
+
+
+def test_layer_manager_update_on_snapshot():
+    """Обновление списка слоёв при получении snapshot."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "updateArtistList" in content, "No updateArtistList function"
+    # Проверка вызова после snapshot
+    assert "case 'snapshot'" in content or '"snapshot"' in content, "No snapshot handling"
+
+
+def test_layer_manager_update_on_delta():
+    """Обновление списка слоёв при получении delta."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    # Проверка вызова updateArtistList после delta
+    lines = content.split('\n')
+    in_delta = False
+    found_update = False
+    for line in lines:
+        if "'delta'" in line or '"delta"' in line:
+            in_delta = True
+        if in_delta and "updateArtistList" in line:
+            found_update = True
+            break
+        if in_delta and ("case '" in line or 'case "' in line or "break" in line):
+            if "break" in line and not found_update:
+                in_delta = False
+    assert found_update, "updateArtistList not called after delta"
+
+
+def test_layer_manager_toggle_visibility():
+    """Переключение видимости слоя при изменении чекбокса."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    assert "addEventListener" in content, "No event listeners"
+    assert "change" in content, "No change event handler"
+    assert "render()" in content, "No render call after toggle"
+
+
+def test_layer_manager_clear_resets_layers():
+    """Сброс слоёв при получении clear."""
+    canvas_path = Path(__file__).parent.parent.parent / "canvas" / "canvas.html"
+    content = canvas_path.read_text()
+
+    # Проверка сброса allArtists и visibleLayers при clear
+    assert "allArtists.clear" in content or "allArtists = new Set" in content, "allArtists not cleared on clear"
+    assert "visibleLayers.clear" in content or "visibleLayers = new Set" in content, "visibleLayers not cleared on clear"
