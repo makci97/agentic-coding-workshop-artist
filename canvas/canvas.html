@@ -18,6 +18,71 @@
             display: block;
             background: #ffffff;
         }
+        /* Layer Manager Dropdown */
+        .layer-manager {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+        .layer-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .layer-button {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .layer-button:hover {
+            background: #444;
+        }
+        .layer-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: #222;
+            border: 1px solid #555;
+            border-radius: 4px;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .layer-content.show {
+            display: block;
+        }
+        .layer-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            color: #ddd;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .layer-item:hover {
+            background: #333;
+        }
+        .layer-item input[type="checkbox"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .layer-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+        .no-layers {
+            padding: 12px;
+            color: #888;
+            font-size: 13px;
+            text-align: center;
+        }
         /* Connection Indicator */
         .connection-indicator {
             position: absolute;
@@ -84,6 +149,16 @@
 <body>
     <canvas id="canvas"></canvas>
 
+    <!-- Layer Manager -->
+    <div class="layer-manager">
+        <div class="layer-dropdown">
+            <button class="layer-button" id="layerToggle">Layers (<span id="layerCount">0</span>)</button>
+            <div class="layer-content" id="layerContent">
+                <div class="no-layers" id="noLayers">No layers yet</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Connection Indicator -->
     <div class="connection-indicator disconnected" id="connectionIndicator">
         <span id="connectionStatus">Disconnected</span>
@@ -123,6 +198,8 @@
 
         // State
         const strokes = [];
+        const visibleLayers = new Set(); // Set of visible artist_names
+        let allArtists = new Set(); // All known artist_names
         let ws = null;
         let canvasWidth = 800;
         let canvasHeight = 600;
@@ -132,6 +209,10 @@
         // DOM elements
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const layerToggle = document.getElementById('layerToggle');
+        const layerContent = document.getElementById('layerContent');
+        const layerCount = document.getElementById('layerCount');
+        const noLayers = document.getElementById('noLayers');
         const connectionIndicator = document.getElementById('connectionIndicator');
         const connectionStatus = document.getElementById('connectionStatus');
         const errorDisplay = document.getElementById('errorDisplay');
@@ -215,7 +296,89 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             for (const stroke of strokes) {
-                drawStroke(stroke);
+                // Filter by visible layers
+                const artistName = stroke.artist_name || 'unknown';
+                if (visibleLayers.has(artistName)) {
+                    drawStroke(stroke);
+                }
+            }
+        }
+
+        // Extract unique artist names from strokes
+        function updateArtistList() {
+            const previousArtists = new Set(allArtists);
+            allArtists.clear();
+
+            for (const stroke of strokes) {
+                const artistName = stroke.artist_name || 'unknown';
+                allArtists.add(artistName);
+            }
+
+            // Initialize visibility for new artists (visible by default)
+            for (const artist of allArtists) {
+                if (!previousArtists.has(artist)) {
+                    visibleLayers.add(artist);
+                }
+            }
+
+            renderLayerList();
+        }
+
+        // Render the layer list UI
+        function renderLayerList() {
+            // Clear existing content (except no-layers message)
+            const existingItems = layerContent.querySelectorAll('.layer-item');
+            existingItems.forEach(item => item.remove());
+
+            if (allArtists.size === 0) {
+                noLayers.style.display = 'block';
+                layerCount.textContent = '0';
+                return;
+            }
+
+            noLayers.style.display = 'none';
+            layerCount.textContent = String(allArtists.size);
+
+            // Sort artists alphabetically
+            const sortedArtists = Array.from(allArtists).sort();
+
+            for (const artist of sortedArtists) {
+                const layerItem = document.createElement('div');
+                layerItem.className = 'layer-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = visibleLayers.has(artist);
+                checkbox.id = `layer-${artist.replace(/\s+/g, '-')}`;
+
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.textContent = artist;
+
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        visibleLayers.add(artist);
+                    } else {
+                        visibleLayers.delete(artist);
+                    }
+                    render();
+                });
+
+                layerItem.appendChild(checkbox);
+                layerItem.appendChild(label);
+                layerContent.appendChild(layerItem);
+            }
+        }
+
+        // Toggle dropdown visibility
+        function toggleLayerDropdown() {
+            layerContent.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        function closeDropdownIfOutside(event) {
+            if (!layerToggle.contains(event.target) && !layerContent.contains(event.target)) {
+                layerContent.classList.remove('show');
             }
         }
 
@@ -269,18 +432,23 @@
                             if (message.strokes) {
                                 processStrokes(message.strokes);
                             }
+                            updateArtistList();
                             break;
 
                         case 'delta':
                             console.log('Received delta with', message.strokes?.length, 'strokes');
                             if (message.strokes) {
                                 processStrokes(message.strokes);
+                                updateArtistList();
                             }
                             break;
 
                         case 'clear':
                             console.log('Canvas cleared');
                             strokes.length = 0;
+                            allArtists.clear();
+                            visibleLayers.clear();
+                            renderLayerList();
                             render();
                             break;
 
@@ -318,6 +486,10 @@
             // Keep canvas size fixed based on server config
             // But scale display if needed
         });
+
+        // Layer dropdown event listeners
+        layerToggle.addEventListener('click', toggleLayerDropdown);
+        document.addEventListener('click', closeDropdownIfOutside);
 
         // Initialize
         async function init() {
