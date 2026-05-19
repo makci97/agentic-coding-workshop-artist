@@ -1,0 +1,13 @@
+{
+  "name": "spiral",
+  "pattern_type": "spiral",
+  "center": [400, 300],
+  "max_radius": 250,
+  "colors": ["#FF5733", "#33FF57", "#3357FF"],
+  "stroke_width": 2,
+  "rotation_angle": 0,
+  "params": {
+    "spirals": 3,
+    "density": 1.5
+  }
+}

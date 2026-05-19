@@ -1,0 +1,13 @@
+{
+  "name": "grid",
+  "pattern_type": "grid",
+  "center": [400, 300],
+  "size": [800, 600],
+  "colors": ["#3357FF", "#33FF57"],
+  "stroke_width": 1.5,
+  "rotation_angle": 0,
+  "params": {
+    "rows": 10,
+    "cols": 10
+  }
+}
