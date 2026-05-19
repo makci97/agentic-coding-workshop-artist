@@ -172,28 +172,51 @@
 
     <script>
         // Configuration
-        const DEFAULT_WS_URL = 'ws://195.133.25.57/canvas/ws';
+        // Query parameters:
+        //   ws=<url>     — WebSocket URL (должен начинаться с ws:// или wss://)
+        //   http=<url>   — HTTP base URL для /canvas/config
+        //   canvas=main|test — выбор канваса: main (/ws) или test (/ws-test)
+        //   Если указан canvas, но не указан ws — используется default URL для выбранного канваса
+        //   Если указан ws — canvas игнорируется (URL берётся из параметра)
+        //   По умолчанию: canvas=main, ws=ws://195.133.25.57/canvas/ws
+        const DEFAULT_WS_URL_MAIN = 'ws://195.133.25.57/canvas/ws';
+        const DEFAULT_WS_URL_TEST = 'ws://195.133.25.57/canvas/ws-test';
         const HTTP_BASE_URL = 'http://195.133.25.57';
 
         function getWebSocketUrl() {
             const params = new URLSearchParams(window.location.search);
             const wsParam = params.get('ws');
+            const canvasParam = params.get('canvas');
+
+            // Если указан ws — валидируем и используем
             if (wsParam) {
-                // Validate WebSocket URL
                 if (wsParam.startsWith('ws://') || wsParam.startsWith('wss://')) {
                     return wsParam;
                 }
+                console.warn('Invalid ws parameter, must start with ws:// or wss://');
             }
-            return DEFAULT_WS_URL;
+
+            // Если canvas=test — используем test URL, иначе main
+            if (canvasParam === 'test') {
+                return DEFAULT_WS_URL_TEST;
+            }
+            return DEFAULT_WS_URL_MAIN;
         }
 
         function getHttpBaseUrl() {
             const params = new URLSearchParams(window.location.search);
             const httpParam = params.get('http');
+            const canvasParam = params.get('canvas');
+
             if (httpParam) {
                 return httpParam;
             }
-            return HTTP_BASE_URL;
+
+            // Если canvas=test — меняем окончание URL
+            const baseUrl = canvasParam === 'test'
+                ? 'http://195.133.25.57'
+                : HTTP_BASE_URL;
+            return baseUrl;
         }
 
         // State
