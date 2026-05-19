@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+        canvas {
+            display: block;
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // Configuration
+        const DEFAULT_WS_URL = 'ws://195.133.25.57/canvas/ws';
+        const HTTP_BASE_URL = 'http://195.133.25.57';
+
+        function getWebSocketUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const wsParam = params.get('ws');
+            if (wsParam) {
+                // Validate WebSocket URL
+                if (wsParam.startsWith('ws://') || wsParam.startsWith('wss://')) {
+                    return wsParam;
+                }
+            }
+            return DEFAULT_WS_URL;
+        }
+
+        function getHttpBaseUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const httpParam = params.get('http');
+            if (httpParam) {
+                return httpParam;
+            }
+            return HTTP_BASE_URL;
+        }
+
+        // State
+        const strokes = [];
+        let ws = null;
+        let canvasWidth = 800;
+        let canvasHeight = 600;
+
+        // DOM elements
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Initialize canvas size
+        function initCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        // Fetch canvas config from server
+        async function fetchCanvasConfig() {
+            try {
+                const httpUrl = getHttpBaseUrl();
+                const response = await fetch(`${httpUrl}/canvas/config`);
+                if (response.ok) {
+                    const config = await response.json();
+                    canvasWidth = config.width;
+                    canvasHeight = config.height;
+                    canvas.width = canvasWidth;
+                    canvas.height = canvasHeight;
+                    console.log(`Canvas config: ${canvasWidth}x${canvasHeight}`);
+                }
+            } catch (error) {
+                console.warn('Failed to fetch canvas config, using window size:', error);
+                initCanvasSize();
+            }
+        }
+
+        // Draw a single stroke
+        function drawStroke(stroke) {
+            ctx.beginPath();
+            ctx.moveTo(stroke.x1, stroke.y1);
+            ctx.lineTo(stroke.x2, stroke.y2);
+            ctx.strokeStyle = stroke.color;
+            ctx.lineWidth = stroke.w;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+        }
+
+        // Render all visible strokes
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (const stroke of strokes) {
+                drawStroke(stroke);
+            }
+        }
+
+        // Process incoming strokes
+        function processStrokes(newStrokes) {
+            for (const stroke of newStrokes) {
+                // Check if stroke already exists
+                const exists = strokes.some(s =>
+                    s.x1 === stroke.x1 && s.y1 === stroke.y1 &&
+                    s.x2 === stroke.x2 && s.y2 === stroke.y2 &&
+                    s.color === stroke.color && s.w === stroke.w
+                );
+                if (!exists) {
+                    strokes.push(stroke);
+                }
+            }
+            render();
+        }
+
+        // WebSocket connection
+        function connect() {
+            const wsUrl = getWebSocketUrl();
+            console.log('Connecting to WebSocket:', wsUrl);
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function(event) {
+                console.log('WebSocket connected');
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const message = JSON.parse(event.data);
+
+                    switch (message.type) {
+                        case 'open':
+                            console.log('Canvas opened:', message.canvas);
+                            if (message.canvas) {
+                                canvasWidth = message.canvas.width;
+                                canvasHeight = message.canvas.height;
+                                canvas.width = canvasWidth;
+                                canvas.height = canvasHeight;
+                            }
+                            break;
+
+                        case 'snapshot':
+                            console.log('Received snapshot with', message.strokes?.length, 'strokes');
+                            strokes.length = 0; // Clear existing
+                            if (message.strokes) {
+                                processStrokes(message.strokes);
+                            }
+                            break;
+
+                        case 'delta':
+                            console.log('Received delta with', message.strokes?.length, 'strokes');
+                            if (message.strokes) {
+                                processStrokes(message.strokes);
+                            }
+                            break;
+
+                        case 'clear':
+                            console.log('Canvas cleared');
+                            strokes.length = 0;
+                            render();
+                            break;
+
+                        case 'error':
+                            console.error('Server error:', message.error);
+                            alert('Server error: ' + message.error);
+                            break;
+
+                        default:
+                            console.log('Unknown message type:', message.type);
+                    }
+                } catch (error) {
+                    console.error('Failed to parse message:', error);
+                }
+            };
+
+            ws.onclose = function(event) {
+                console.log('WebSocket closed, reconnecting in 3 seconds...');
+                setTimeout(connect, 3000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Keep canvas size fixed based on server config
+            // But scale display if needed
+        });
+
+        // Initialize
+        async function init() {
+            await fetchCanvasConfig();
+            connect();
+        }
+
+        init();
+    </script>
+</body>
+</html>

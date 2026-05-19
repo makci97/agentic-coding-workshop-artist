@@ -8,14 +8,14 @@
 
 ## Критерии выполненной задачи
 
-- [ ] HTML-файл с `<canvas>` элементом на весь экран
-- [ ] GET `/canvas/config` → получение `{ width, height }`, инициализация canvas
-- [ ] WebSocket подключение (default URL: `ws://195.133.25.57/canvas/ws`)
-- [ ] Обработка сообщений: `open`, `snapshot`, `delta`
-- [ ] Рендеринг штрихов через Canvas 2D API (`moveTo`, `lineTo`, `stroke`)
-- [ ] Перерисовка при получении `delta`
-- [ ] Очистка canvas при получении `clear`
-- [ ] Тесты на Canvas Renderer согласно «Решения по тестированию» родительского PRD
+- [x] HTML-файл с `<canvas>` элементом на весь экран
+- [x] GET `/canvas/config` → получение `{ width, height }`, инициализация canvas
+- [x] WebSocket подключение (default URL: `ws://195.133.25.57/canvas/ws`)
+- [x] Обработка сообщений: `open`, `snapshot`, `delta`
+- [x] Рендеринг штрихов через Canvas 2D API (`moveTo`, `lineTo`, `stroke`)
+- [x] Перерисовка при получении `delta`
+- [x] Очистка canvas при получении `clear`
+- [x] Тесты на Canvas Renderer согласно «Решения по тестированию» родительского PRD
 
 ## Блокируется
 
